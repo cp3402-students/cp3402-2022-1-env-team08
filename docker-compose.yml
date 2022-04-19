@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  # Wordpress
+  wordpress:
+    image: wordpress:latest
+    ports:
+      - 80:80
+    depends_on:
+      - db
+      - phpmyadmin
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - wp_data:/var/www/html
+
+  # Wordpress CLI
+  wpcli:
+    image: wpcli
+    build: ./wpcli/
+    volumes:
+      - wp_data:/var/www/html
+    working_dir: /var/www/html
+
+  # MariaDB
+  db:
+    image: mariadb:latest
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+
+  # Phpmyadmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    depends_on:
+      - db
+    restart: always
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - 8080:80
+
+volumes:
+  wp_data:
+  db_data:
